@@ -1,0 +1,15 @@
+{
+  "name": "@hs/root",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "gen:migrations": "cd core && cargo prisma migrate dev",
+    "gen:prisma": "cd core && cargo prisma generate"
+  },
+  "engines": {
+    "pnpm": ">=6.0.0",
+    "npm": "pnpm",
+    "yarn": "pnpm",
+    "node": ">=14.0.0"
+  }
+}
