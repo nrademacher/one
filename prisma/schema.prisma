@@ -1,6 +1,6 @@
 datasource db {
-    provider = "sqlite"
-    url      = "file:dev.db"
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 generator client {
@@ -10,7 +10,96 @@ generator client {
     output        = "../src/prisma.rs"
 }
 
-model User {
-    id          String  @id
-    displayName String
+enum UserRoles {
+  ADMIN
+  DEVELOPER
+  TEAM_LEAD
+  AGILE_COACH
 }
+
+
+model User {
+  id           String        @id @default(cuid())
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  email        String        @unique
+  passwordHash String
+  name         String?
+  avatarUrl    String?
+  displayName  String?
+  bio          String?
+  role         UserRoles     @default(DEVELOPER)
+  team         Team?         @relation(name: "TeamToMember", fields: [teamId], references: [id])
+  teamId       String?
+  managedTeams Team[]        @relation(name: "TeamToAgileCoach")
+  leadTeam     Team?         @relation(name: "TeamToTeamLead")
+  syncItems    SyncItem[]    @relation(name: "ItemToMember")
+  syncPackages SyncPackage[] @relation(name: "PackageToMember")
+}
+
+model Team {
+  id           String     @id @default(cuid())
+  members      User[]     @relation(name: "TeamToMember")
+  name         String     @unique
+  description  String?
+  agileCoach   User       @relation(name: "TeamToAgileCoach", fields: [agileCoachId], references: [id])
+  agileCoachId String
+  teamLead     User       @relation(name: "TeamToTeamLead", fields: [teamLeadId], references: [id])
+  teamLeadId   String     @unique
+  isSynced     Boolean    @default(true)
+  syncs        TeamSync[] @relation(name: "TeamToSync")
+}
+
+enum TeamSyncStatus {
+  INCOMPLETE
+  IN_PROGRESS
+  COMPLETED
+  CANCELED
+}
+
+model TeamSync {
+  id           String         @id @default(cuid())
+  syncPackages SyncPackage[]  @relation(name: "SyncToPackage")
+  team         Team           @relation(name: "TeamToSync", fields: [teamSyncId], references: [id])
+  teamSyncId   String
+  status       TeamSyncStatus @default(INCOMPLETE)
+}
+
+enum SyncPackageStatus {
+  NOT_SYNCED
+  SYNCED
+}
+
+model SyncPackage {
+  id            String            @id @default(cuid())
+  name          String
+  items         SyncItem[]        @relation(name: "PackageToItem")
+  sync          TeamSync          @relation(name: "SyncToPackage", fields: [syncPackageId], references: [id])
+  syncPackageId String
+  creator       User              @relation(name: "PackageToMember", fields: [creatorId], references: [id])
+  creatorId     String
+  status        SyncPackageStatus @default(NOT_SYNCED)
+}
+
+enum SyncItemStatus {
+  NOT_SYNCED
+  SYNCED
+}
+
+model SyncItem {
+  id         String         @id @default(cuid())
+  name       String
+  package    SyncPackage    @relation(name: "PackageToItem", fields: [syncItemId], references: [id])
+  syncItemId String
+  creator    User           @relation(name: "ItemToMember", fields: [creatorId], references: [id])
+  creatorId  String
+  status     SyncItemStatus @default(NOT_SYNCED)
+  tags       SyncItemTag[]
+}
+
+model SyncItemTag {
+  id    String     @id @default(cuid())
+  name  String
+  items SyncItem[]
+}
+

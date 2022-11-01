@@ -8,15 +8,13 @@ members = [
 [workspace.dependencies]
 prisma-client-rust = { git = "https://github.com/Brendonovich/prisma-client-rust.git", tag = "0.6.3", features = [
   "rspc",
-  "sqlite-create-many",
   "migrations",
-  "sqlite",
+  "postgresql",
 ], default-features = false }
 prisma-client-rust-cli = { git = "https://github.com/Brendonovich/prisma-client-rust.git", tag = "0.6.3", features = [
   "rspc",
-  "sqlite-create-many",
   "migrations",
-  "sqlite",
+  "postgresql",
 ], default-features = false }
 
 rspc = { version = "0.1.2" }
