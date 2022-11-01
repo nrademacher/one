@@ -1,2 +1,4 @@
 /target
+/core/src/prisma.rs
+
 .env
